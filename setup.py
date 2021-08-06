@@ -1,5 +1,6 @@
 from distutils.core import setup
-from ameliapg import __version__
+
+__version__ = '0.1.1'
 
 with open('requirements.txt') as f:
   requirements = f.read().splitlines()
