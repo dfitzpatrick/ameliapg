@@ -1,0 +1,8 @@
+.git/
+.idea/
+tests/.pytest_cache/
+__pycache__/
+.env
+run/
+*.py[cod]
+*$py.class
