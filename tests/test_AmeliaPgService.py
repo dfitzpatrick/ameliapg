@@ -1,5 +1,5 @@
 from ameliapg.AmeliaPgService import AmeliaPgService
-from ameliapg.server.models import Server
+from ameliapg.server.models import GuildConfig, AutoRole
 import pytest
 
 @pytest.mark.asyncio
@@ -10,11 +10,7 @@ async def test_amelia_listen(dsn):
     amelia = await AmeliaPgService.from_dsn(dsn)
     await amelia.start_listening()
 
-    server = Server(
-        guild_id=1234,
-        delimiter="/",
-    )
     amelia.register_listener(foo)
-    await amelia.record_server_join(server)
+    await amelia.new_guild_config(123456985454)
     await amelia.end()
 

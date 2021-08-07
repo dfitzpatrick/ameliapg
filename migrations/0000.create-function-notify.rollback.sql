@@ -1,1 +1,1 @@
-DROP FUNCTION IF EXISTS notify_event;
+DROP FUNCTION IF EXISTS notify_event CASCADE;

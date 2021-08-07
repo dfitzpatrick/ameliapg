@@ -26,7 +26,27 @@ async def reset_db():
 
 @pytest.fixture
 async def dsn(reset_db):
+    db = await asyncpg.create_pool(test_dsn)
+
+    servers = [
+        (123456789, '!'),
+        (987654321, ','),
+        (455465466, ','),
+    ]
+    autoroles = [
+        (123456789, 12345),
+        (123456789, 67890),
+        (123456789, 98765),
+        (987654321, 43210)
+    ]
+    async with db.acquire() as conn:
+        await conn.executemany("INSERT INTO Server (guild_id, delimiter) VALUES ($1, $2);", servers)
+
+    async with db.acquire() as conn:
+        await conn.executemany("INSERT INTO AutoRole (guild_id, role_id) VALUES ($1, $2);", autoroles)
+
     yield test_dsn
+
 
 
 @pytest.fixture
@@ -37,10 +57,20 @@ async def db(reset_db):
 
 @pytest.fixture
 async def server_fixture(db: asyncpg.Pool):
-    data = [
+    servers = [
         (123456789, '!'),
         (987654321, ','),
+        (455465466, ','),
+    ]
+    autoroles = [
+        (123456789, 12345),
+        (123456789, 67890),
+        (123456789, 98765),
+        (987654321, 43210)
     ]
     async with db.acquire() as conn:
-        await conn.executemany("INSERT INTO Server (guild_id, delimiter) VALUES ($1, $2);", data)
+        await conn.executemany("INSERT INTO Server (guild_id, delimiter) VALUES ($1, $2);", servers)
+
+    async with db.acquire() as conn:
+        await conn.executemany("INSERT INTO AutoRole (guild_id, role_id) VALUES ($1, $2);", autoroles)
     yield db

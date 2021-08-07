@@ -1,6 +1,6 @@
 import pytest
 from ameliapg.server.ServerRepository import ServerRepository
-from ameliapg.server.models import Server
+from ameliapg.server.models import GuildConfig
 from ameliapg import errors
 
 
@@ -12,17 +12,18 @@ async def test_server_insert(server_fixture):
         "guild_id": "4567623",
         "delimiter": "/",
     }
-    new = await repo.create(Server(**data))
-    assert new.id == 3
+    new = await repo.create(GuildConfig(**data))
+    assert new.id == 4
 
 
 @pytest.mark.asyncio
 async def test_server_find(server_fixture):
     repo = ServerRepository(server_fixture)
     entity = await repo.find(1)
-    assert isinstance(entity, Server)
+    assert isinstance(entity, GuildConfig)
     assert entity.delimiter == "!"
     assert entity.guild_id == 123456789
+    assert entity.auto_delete_commands == True
 
 @pytest.mark.asyncio
 async def test_server_find_by(server_fixture):
@@ -41,29 +42,26 @@ async def test_server_find_notfound(server_fixture):
 async def test_server_find_all(server_fixture):
     repo = ServerRepository(server_fixture)
     entities = await repo.find_all()
-    assert len(entities) == 2
-    assert all(isinstance(s, Server) for s in entities)
+    assert len(entities) == 3
+    assert all(isinstance(s, GuildConfig) for s in entities)
 
 @pytest.mark.asyncio
 async def test_server_update(server_fixture):
     repo = ServerRepository(server_fixture)
-    server = Server(
-        id=1,
-        guild_id=12121212121,
-        delimiter='~'
-    )
-    result = await repo.update(server)
-    queried = await repo.find(1)
-    assert queried.guild_id == server.guild_id, "guild_id did not update"
-    assert queried.delimiter == server.delimiter, "delimiter did not update"
-    assert result == True, "UPDATE returned False when succeeding."
+
+
+    old = queried = await repo.find(3)
+    queried.guild_id = 123456223547457
+    result = await repo.update(queried)
+    new = await repo.find(3)
+    assert result == True
 
 @pytest.mark.asyncio
 async def test_server_update_failed(server_fixture):
     repo = ServerRepository(server_fixture)
-    server = Server(
+    server = GuildConfig(
         id=0,
-        guild_id=12121212121,
+        guild_id=1212121212,
         delimiter='~'
     )
     result = await repo.update(server)

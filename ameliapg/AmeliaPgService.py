@@ -1,3 +1,4 @@
+from __future__ import annotations
 import asyncio
 import json
 import typing as t
@@ -6,8 +7,9 @@ import asyncpg
 from ameliapg.errors import UnknownEntity
 from ameliapg.models import PgNotify
 from ameliapg.server import ServerRepository
-from ameliapg.server.models import Server
-
+from ameliapg.server.models import GuildConfig, AutoRole
+import logging
+log = logging.getLogger(__name__)
 
 class AmeliaPgService():
 
@@ -27,11 +29,11 @@ class AmeliaPgService():
         self.loop = asyncio.get_running_loop() if loop is None else loop
 
     def _notify(self, connection: asyncpg.Connection, pid: int, channel: str, payload: str):
-        print(payload)
+        log.debug(f"PG Notify: {payload}")
         payload = json.loads(payload)
 
         table_map = {
-            'server': Server,
+            'server': GuildConfig,
         }
         entity_t = table_map.get(payload['table'])
         if entity_t is None:
@@ -65,15 +67,59 @@ class AmeliaPgService():
             await self._conn.close()
 
 
-    async def get_servers(self) -> t.List[Server]:
+    async def get_servers(self) -> t.List[GuildConfig]:
         servers = await self._server_repo.find_all()
         return servers
 
-    async def record_server_join(self, server: Server):
-        await self._server_repo.create(server)
+    async def new_guild_config(self, guild_id: int) -> GuildConfig:
+        gc = await self._server_repo.create(GuildConfig(guild_id=guild_id))
+        return gc
+
+    async def add_auto_role_to_guild(self, guild_id: int, role_id: int) -> AutoRole:
+        """
+        Adds a new instance for an AutoRole in the database.
+        Parameters
+        ----------
+        guild_id
+            The discord identifier for a guild
+        role_id
+            The discord identifier for a role
+        Returns
+        -------
+        AutoRole
+        """
+        auto_role = AutoRole(guild_id=guild_id, role_id=role_id)
+        role = await self._server_repo.create_auto_role(auto_role)
+        return role
+
+    async def remove_auto_role_from_guild(self, role_id: int):
+        await self._server_repo.remove_auto_role(role_id)
+
+    async def fetch_guild_config(self, guild_id: int):
+        """
+        Fetches off a unique key in the database guild_id.
+        Parameters
+        ----------
+        guild_id
+            The discord identifier for a guild
+        Returns
+        -------
+        GuildConfig
+        """
+        gc = await self._server_repo.find_by('guild_id', guild_id)
+        return gc
+
+    async def fetch_auto_roles(self, by=()):
+        if by == ():
+            return await self._server_repo.find_all_auto_roles()
+        return await self._server_repo.find_auto_roles_by(by[0], by[1])
 
 
-
-
-
-
+    def __del__(self):
+        try:
+            if self.loop.is_running():
+                self.loop.create_task(self.end())
+            else:
+                self.loop.run_until_complete(self.end())
+        except Exception:
+            pass

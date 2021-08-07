@@ -23,4 +23,4 @@ async def test_db_server_select(server_fixture):
     query = "SELECT * FROM server"
     async with server_fixture.acquire() as conn:
         records = await conn.fetch(query)
-    assert len(records) == 2
+    assert len(records) == 3
