@@ -19,7 +19,11 @@ setup(
     packages = [
         'ameliapg',
         'ameliapg.models',
-        'ameliapg.server'
+        'ameliapg.server',
+        'ameliapg.autorole',
+        'ameliapg.metar',
+        'ameliapg.station',
+        'ameliapg.taf'
     ],
 )
 
