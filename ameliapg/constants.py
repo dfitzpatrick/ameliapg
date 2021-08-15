@@ -1,4 +1,4 @@
 class PgActions:
-    INSERT = 'insert'
-    UPDATE = 'update'
-    DELETE = 'delete'
+    INSERT = 'INSERT'
+    UPDATE = 'UPDATE'
+    DELETE = 'DELETE'

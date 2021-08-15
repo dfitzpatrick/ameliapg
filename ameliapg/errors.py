@@ -8,3 +8,6 @@ class DuplicateEntity(Exception):
 
 class UnknownEntity(Exception):
     pass
+
+class InvalidOperation(Exception):
+    pass

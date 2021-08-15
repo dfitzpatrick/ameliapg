@@ -1,4 +1,5 @@
 DROP TRIGGER IF EXISTS set_timestamp ON AutoRole CASCADE;
+DROP TRIGGER IF EXISTS notify_auto_role_event ON AutoRole CASCADE;
 DROP TABLE IF EXISTS AutoRole CASCADE;
 
 DROP INDEX IF EXISTS auto_role_id_pkey CASCADE;

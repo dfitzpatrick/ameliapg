@@ -11,3 +11,4 @@ CREATE TRIGGER set_timestamp
         FOR EACH ROW
             EXECUTE PROCEDURE set_updated_at();
 
+
