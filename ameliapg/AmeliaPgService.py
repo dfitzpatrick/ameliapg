@@ -114,6 +114,22 @@ class AmeliaPgService():
     async def fetch_metar_configs(self):
         return await self._repo_metar.find_all()
 
+    async def fetch_taf_config(self, guild_id: int) -> t.Optional[TafDB]:
+        configs = await self._repo_taf.find_by('guild_id', guild_id)
+        if len(configs) > 0:
+            return configs[0]
+
+
+    async def fetch_metar_config(self, guild_id: int) -> t.Optional[MetarDB]:
+        configs = await self._repo_metar.find_by('guild_id', guild_id)
+        if len(configs) > 0:
+            return configs[0]
+
+    async def fetch_station_config(self, guild_id: int) -> t.Optional[StationDB]:
+        configs = await self._repo_station.find_by('guild_id', guild_id)
+        if len(configs) > 0:
+            return configs[0]
+
     async def new_metar_config(self, guild_id: int) -> MetarDB:
         try:
             mc = await self._repo_metar.create(MetarSchema(guild_id=guild_id))
@@ -132,6 +148,12 @@ class AmeliaPgService():
 
     async def fetch_metar_channels(self, guild_id: int) -> t.List[MetarChannelDB]:
         return await self._repo_metar.fetch_channels_by("guild_id", guild_id)
+
+    async def fetch_taf_channels(self, guild_id: int) -> t.List[TafChannelDB]:
+        return await self._repo_taf.fetch_channels_by("guild_id", guild_id)
+
+    async def fetch_station_channels(self, guild_id: int) -> t.List[StationChannelDB]:
+        return await self._repo_station.fetch_channels_by("guild_id", guild_id)
 
     async def fetch_all_metar_channels(self) -> t.List[MetarChannelDB]:
         return await self._repo_metar.find_all_channels()
