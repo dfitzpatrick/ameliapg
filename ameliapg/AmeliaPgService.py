@@ -44,8 +44,10 @@ class AmeliaPgService():
 
     @classmethod
     def migrate(cls, dsn: str):
-        migrations_folder = pathlib.Path(__file__).parents[1] / "migrations"
-        migrations = yoyo.read_migrations(str(migrations_folder))
+        migrations_folder = str(pathlib.Path(__file__).parents[1] / "migrations")
+        print(f"Migrations path: {migrations_folder}")
+        migrations = yoyo.read_migrations(migrations_folder)
+        print(migrations)
         backend = yoyo.get_backend(dsn)
         with backend.lock():
             backend.apply_migrations(backend.to_apply(migrations))
