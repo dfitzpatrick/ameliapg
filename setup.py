@@ -15,7 +15,7 @@ setup(
     description="Data bindings for the amelia bot",
     long_description=readme,
     install_requires=requirements,
-    python_requires='>3.8.0',
+    python_requires='>3=.8.0',
     packages = [
         'ameliapg',
         'ameliapg.models',
