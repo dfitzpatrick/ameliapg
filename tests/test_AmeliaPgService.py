@@ -1,5 +1,4 @@
 from ameliapg.AmeliaPgService import AmeliaPgService
-from ameliapg.server.models import GuildConfig, AutoRole
 import pytest
 
 @pytest.mark.asyncio

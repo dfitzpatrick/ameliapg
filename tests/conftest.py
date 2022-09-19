@@ -2,13 +2,13 @@ import pytest
 import asyncpg
 import yoyo
 import os
-
+import pathlib
 from ameliapg import AmeliaPgService
 
 dsn_base = f"postgresql://{os.environ['TEST_DB_USER']}:{os.environ['TEST_DB_PWD']}" + \
                f"@{os.environ['TEST_DB_HOST']}:{os.environ['TEST_DB_PORT']}"
 test_dsn = dsn_base + "/tmpdb"
-
+MIGRATIONS = pathlib.Path(__file__).parents[1] / 'migrations'
 
 @pytest.fixture
 async def reset_db():
@@ -19,7 +19,7 @@ async def reset_db():
     await conn.execute(f"CREATE DATABASE tmpdb OWNER {os.environ['TEST_DB_USER']};")
     await conn.close()
     backend = yoyo.get_backend(test_dsn)
-    migrations = yoyo.read_migrations('../migrations')
+    migrations = yoyo.read_migrations(str(MIGRATIONS))
     print(migrations)
     with backend.lock():
         backend.apply_migrations(backend.to_apply(migrations))

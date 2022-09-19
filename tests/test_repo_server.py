@@ -1,6 +1,6 @@
 import pytest
 from ameliapg.server.ServerRepository import ServerRepository
-from ameliapg.server.models import GuildConfig
+from ameliapg.server.models import GuildSchema, GuildDB
 from ameliapg import errors
 
 
@@ -12,7 +12,7 @@ async def test_server_insert(server_fixture):
         "guild_id": "4567623",
         "delimiter": "/",
     }
-    new = await repo.create(GuildConfig(**data))
+    new = await repo.create(GuildSchema(**data))
     assert new.id == 4
 
 
@@ -20,7 +20,7 @@ async def test_server_insert(server_fixture):
 async def test_server_find(server_fixture):
     repo = ServerRepository(server_fixture)
     entity = await repo.find(1)
-    assert isinstance(entity, GuildConfig)
+    assert isinstance(entity, GuildSchema)
     assert entity.delimiter == "!"
     assert entity.guild_id == 123456789
     assert entity.auto_delete_commands == True
@@ -28,7 +28,7 @@ async def test_server_find(server_fixture):
 @pytest.mark.asyncio
 async def test_server_find_by(server_fixture):
     repo = ServerRepository(server_fixture)
-    entity = await repo.find_by('guild_id', 123456789)
+    entity = (await repo.find_by('guild_id', 123456789))[0]
     assert entity.delimiter == "!"
     assert entity.guild_id == 123456789
 
@@ -43,7 +43,7 @@ async def test_server_find_all(server_fixture):
     repo = ServerRepository(server_fixture)
     entities = await repo.find_all()
     assert len(entities) == 3
-    assert all(isinstance(s, GuildConfig) for s in entities)
+    assert all(isinstance(s, GuildDB) for s in entities)
 
 @pytest.mark.asyncio
 async def test_server_update(server_fixture):
@@ -59,7 +59,7 @@ async def test_server_update(server_fixture):
 @pytest.mark.asyncio
 async def test_server_update_failed(server_fixture):
     repo = ServerRepository(server_fixture)
-    server = GuildConfig(
+    server = GuildDB(
         id=0,
         guild_id=1212121212,
         delimiter='~'

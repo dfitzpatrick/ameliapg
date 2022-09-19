@@ -21,6 +21,8 @@ from ameliapg.models import PgNotify
 from ameliapg.server import ServerRepository
 from ameliapg.server.models import GuildDB, GuildSchema
 from contextvars import ContextVar
+import yoyo
+import pathlib
 
 ctx_connection = ContextVar("ctx_connection")
 ctx_transaction = ContextVar("ctx_transaction")
@@ -38,6 +40,15 @@ class ServiceProxy:
         return self.connection.__await__()
 
 class AmeliaPgService():
+
+    @classmethod
+    def migrate(cls, dsn: str):
+        migrations_folder = pathlib.Path(__file__).parents[1] / "migrations"
+        migrations = yoyo.read_migrations(str(migrations_folder))
+        backend = yoyo.get_backend(dsn)
+        with backend.lock():
+            backend.apply_migrations(backend.to_apply(migrations))
+
 
     @classmethod
     async def from_dsn(cls, dsn: str, listen: bool = True) -> 'AmeliaPgService':
@@ -277,7 +288,6 @@ class AmeliaPgService():
             loop.create_task(self.end())
         except RuntimeError:
             asyncio.run(self.end())
-
 
     async def __aenter__(self):
         self._conn = await self.pool.acquire()

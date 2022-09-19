@@ -31,14 +31,14 @@ class ServerRepository:
 
     async def find(self, id: int) -> GuildDB:
         try:
-            return await self.find_by('id', id)[0]
-        except KeyError:
+            return (await self.find_by('id', id))[0]
+        except IndexError:
             raise NoEntity
 
     async def find_guild(self, guild_id: int) -> GuildDB:
         try:
             return await self.find_by('guild_id', id)[0]
-        except KeyError:
+        except IndexError:
             raise NoEntity
 
     async def find_by(self, column: str, value: t.Any) -> t.List[GuildDB]:
