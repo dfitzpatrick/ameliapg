@@ -18,6 +18,3 @@ class AutoRoleDBApi(AutoRoleDB):
     guild_id: str
     role_id: str
 
-class TestRole(AutoRoleDB):
-    pass
-

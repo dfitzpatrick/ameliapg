@@ -2,6 +2,9 @@ import pytest
 import asyncpg
 import yoyo
 import os
+
+from ameliapg import AmeliaPgService
+
 dsn_base = f"postgresql://{os.environ['TEST_DB_USER']}:{os.environ['TEST_DB_PWD']}" + \
                f"@{os.environ['TEST_DB_HOST']}:{os.environ['TEST_DB_PORT']}"
 test_dsn = dsn_base + "/tmpdb"
@@ -47,7 +50,21 @@ async def dsn(reset_db):
 
     yield test_dsn
 
+@pytest.fixture
+async def ameliapg(reset_db):
+    pool = await asyncpg.create_pool(test_dsn)
+    conn = await asyncpg.connect(test_dsn)
 
+    servers = [
+        (1234, '!'),
+        (5678, ','),
+        (9123, ','),
+    ]
+    async with pool.acquire() as conn:
+        await conn.executemany("INSERT INTO Server (guild_id, delimiter) VALUES ($1, $2);", servers)
+    ameliapg = AmeliaPgService(pool, conn)
+    yield ameliapg
+    await ameliapg.end()
 
 @pytest.fixture
 async def db(reset_db):

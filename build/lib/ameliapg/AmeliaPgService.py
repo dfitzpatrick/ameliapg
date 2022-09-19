@@ -10,7 +10,6 @@ import asyncpg
 from ameliapg.autorole.models import AutoRoleDB, AutoRoleSchema
 from ameliapg.autorole.repository import AutoRoleRepository
 from ameliapg.errors import UnknownEntity, DuplicateEntity
-from ameliapg.forum_channels.service import ForumChannelService
 from ameliapg.metar.models import MetarChannelDB, MetarChannelSchema, MetarDB, MetarSchema
 from ameliapg.metar.repository import MetarRepository
 from ameliapg.taf.models import TafChannelDB, TafDB, TafSchema, TafChannelSchema
@@ -20,22 +19,8 @@ from ameliapg.station.repository import StationRepository
 from ameliapg.models import PgNotify
 from ameliapg.server import ServerRepository
 from ameliapg.server.models import GuildDB, GuildSchema
-from contextvars import ContextVar
-
-ctx_connection = ContextVar("ctx_connection")
-ctx_transaction = ContextVar("ctx_transaction")
 
 log = logging.getLogger(__name__)
-
-
-class ServiceProxy:
-
-    def __init__(self, connection: asyncpg.Connection):
-        self.connection = connection
-        self.forum_channels = ForumChannelService(self.connection)
-
-    def __await__(self):
-        return self.connection.__await__()
 
 class AmeliaPgService():
 
@@ -99,13 +84,10 @@ class AmeliaPgService():
             await self._conn.close()
 
     async def end(self):
-        if not self.loop.is_closed():
-           try:
-                await self.pool.close()
-                await self.stop_listening()
-                await self._conn.close()
-           except asyncpg.InterfaceError:
-               pass
+        await self.pool.close()
+        if not self._conn.is_closed():
+            await self.stop_listening()
+            await self._conn.close()
 
 
     ###########
@@ -271,31 +253,15 @@ class AmeliaPgService():
     async def delete_auto_role(self, role_id: int) -> bool:
         return await self._repo_autorole.delete(role_id)
 
+
+
+
     def __del__(self):
         try:
-            loop = asyncio.get_running_loop()
-            loop.create_task(self.end())
-        except RuntimeError:
-            asyncio.run(self.end())
-
-
-    async def __aenter__(self):
-        self._conn = await self.pool.acquire()
-        self._trans = self._conn.transaction()
-        await self._trans.start()
-        ctx_connection.set(self._conn)
-        ctx_transaction.set(self._trans)
-        return ServiceProxy(self._conn)
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        conn = ctx_connection.get()
-        trans = ctx_transaction.get()
-        if exc_type:
-            await trans.rollback()
-        else:
-            await trans.commit()
-        try:
-            await conn.close()
-        except:
+            if self.loop.is_running():
+                self.loop.create_task(self.end())
+            else:
+                self.loop.run_until_complete(self.end())
+        except Exception:
             pass
 
