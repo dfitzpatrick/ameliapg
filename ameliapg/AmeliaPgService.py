@@ -39,6 +39,7 @@ class ServiceProxy:
     def __await__(self):
         return self.connection.__await__()
 
+
 class AmeliaPgService():
 
     @classmethod
